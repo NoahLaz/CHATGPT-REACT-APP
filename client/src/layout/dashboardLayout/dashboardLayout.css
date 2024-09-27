@@ -1,0 +1,12 @@
+.dashboardLayout {
+  height: 100%;
+  display: flex;
+  .menu {
+    flex: 1;
+  }
+  .content {
+    background-color: #0a0a0a;
+    border-radius: 10px;
+    flex: 4;
+  }
+}

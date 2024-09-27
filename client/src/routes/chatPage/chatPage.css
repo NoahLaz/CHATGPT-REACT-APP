@@ -1,0 +1,45 @@
+@import url("../../variables.css");
+
+.chatPage {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  .wrapper {
+    position: relative;
+    flex: 1;
+    width: 100%;
+    overflow: scroll;
+
+    .chat {
+      margin: 0 auto;
+      width: 80%;
+      padding: 30px 60px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+
+      .message {
+        border-radius: 10px;
+        background-color: var(--bgGray);
+        padding: 10px 20px;
+      }
+
+      .user {
+        align-self: flex-end;
+        max-width: 80%;
+        border-top-right-radius: 0;
+      }
+      .bot {
+        max-width: 80%;
+        align-self: flex-start;
+        border-top-left-radius: 0;
+      }
+    }
+    .formContainer {
+      position: sticky;
+      bottom: 0;
+      width: 100%;
+    }
+  }
+}
