@@ -1,7 +1,24 @@
 import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import http from "../../http.js";
 import "./chatList.css";
 
 const ChatList = () => {
+  const [chats, setChats] = useState();
+
+  const getAllChats = async () => {
+    try {
+      const response = await http.get("/");
+      setChats(response.data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    getAllChats();
+  }, []);
+
   return (
     <div className="chatList">
       <span className="title">DASHBOARD</span>
@@ -11,12 +28,13 @@ const ChatList = () => {
       <hr />
       <span className="title">RECENT CHATS</span>
       <div className="link">
-        <Link to={"/"}>Chat Title</Link>
-        <Link to={"/"}>Chat Title</Link>
-        <Link to={"/"}>Chat Title</Link>
-        <Link to={"/"}>Chat Title</Link>
-        <Link to={"/"}>Chat Title</Link>
-        <Link to={"/"}>Chat Title</Link>
+        {chats?.map((item, index) => {
+          return (
+            <Link key={index} to={`/dashboard/chats/${item._id}`}>
+              {item.title}
+            </Link>
+          );
+        })}
       </div>
       <hr />
       <div className="upgrade">

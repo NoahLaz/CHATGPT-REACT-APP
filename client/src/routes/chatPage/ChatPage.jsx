@@ -1,28 +1,18 @@
 import "./chatPage.css";
 
 import { useEffect, useRef, useState } from "react";
-import { IKImage } from "imagekitio-react";
+import { useParams } from "react-router-dom";
 
-import MarkDown from "react-markdown";
-import model from "../../lib/gemini";
+import chatHistory from "../../lib/gemini";
 import NewPrompt from "../../components/newPrompt/NewPrompt";
-
-const chatHistory = model.startChat({
-  history: [
-    {
-      role: "user",
-      parts: [{ text: "Hello" }],
-    },
-    {
-      role: "model",
-      parts: [{ text: "Great to meet you. What would you like to know?" }],
-    },
-  ],
-});
+import ChatService from "../../services/chatService.js";
 
 const ChatPage = () => {
+  const [messages, setMessages] = useState();
   const [question, setQuestion] = useState();
   const [answer, setAnswer] = useState();
+
+  const { id } = useParams();
 
   const ref = useRef(null);
 
@@ -32,6 +22,15 @@ const ChatPage = () => {
     imgPath: "",
     imgData: {},
   });
+
+  const getAllChats = async () => {
+    try {
+      const response = await ChatService.get(`/${id}`);
+      setMessages(response.data.messages);
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   const getAiResponse = async (prompt) => {
     setQuestion(prompt);
@@ -57,10 +56,29 @@ const ChatPage = () => {
     ref.current.scrollIntoView({ behavior: "smooth" });
   }, [question, answer, img]);
 
+  useEffect(() => {
+    getAllChats();
+  }, [id]);
+
   return (
     <div className="chatPage">
       <div className="wrapper">
         <div className="chat">
+          {messages?.map((item, index) => {
+            if (item.role === "user") {
+              return (
+                <div key={index} className="message user">
+                  {item.parts}
+                </div>
+              );
+            } else {
+              return (
+                <div key={index} className="message bot">
+                  {item.parts}
+                </div>
+              );
+            }
+          })}
           {question && <div className="message user">{question}</div>}
           {answer && <div className="message bot">{answer}</div>}
           {img?.isLoading && <div>Uploading Image...</div>}
