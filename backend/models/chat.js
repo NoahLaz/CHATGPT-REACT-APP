@@ -11,7 +11,6 @@ const chatSchema = new Schema({
       date: { type: Date, default: Date.now },
     },
   ],
-  date: { type: Date, default: Date.now },
 });
 
 const Chat = mongoose.model("Chat", chatSchema);

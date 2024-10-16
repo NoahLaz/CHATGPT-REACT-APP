@@ -21,17 +21,4 @@ const model = genAI.getGenerativeModel({
   safetySettings,
 });
 
-const chatHistory = model.startChat({
-  history: [
-    {
-      role: "user",
-      parts: [{ text: "Hello" }],
-    },
-    {
-      role: "model",
-      parts: [{ text: "Great to meet you. What would you like to know?" }],
-    },
-  ],
-});
-
-export default chatHistory;
+export default model;

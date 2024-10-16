@@ -1,15 +1,15 @@
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
-import http from "../../http.js";
+import ChatService from "../../services/chatService";
 import "./chatList.css";
 
 const ChatList = () => {
-  const [chats, setChats] = useState();
+  const [chats, setChats] = useState([]);
 
   const getAllChats = async () => {
     try {
-      const response = await http.get("/");
-      setChats(response.data);
+      const { data } = await ChatService.getAll();
+      setChats(data);
     } catch (error) {
       console.log(error);
     }
@@ -22,7 +22,7 @@ const ChatList = () => {
   return (
     <div className="chatList">
       <span className="title">DASHBOARD</span>
-      <Link to={"/"}>New Chat</Link>
+      <Link to={"/dashboard"}>New Chat</Link>
       <Link to={"/"}>Explore</Link>
       <Link to={"/"}>Contact</Link>
       <hr />
@@ -31,7 +31,7 @@ const ChatList = () => {
         {chats?.map((item, index) => {
           return (
             <Link key={index} to={`/dashboard/chats/${item._id}`}>
-              {item.title}
+              {item.title.substring(0, 30) + "..."}
             </Link>
           );
         })}

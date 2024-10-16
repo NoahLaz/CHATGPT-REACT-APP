@@ -38,6 +38,7 @@ const UploadImage = ({ setImg }) => {
     console.log("Success", res);
     setImg((prev) => ({
       ...prev,
+      imgUrl: res.url,
       isLoading: false,
       imgPath: res.filePath,
     }));

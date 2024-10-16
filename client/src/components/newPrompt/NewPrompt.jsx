@@ -12,20 +12,29 @@ const NewPrompt = ({ setImg, getAiResponse }) => {
     getAiResponse(prompt);
     setPrompt("");
   };
+
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault(); // Prevents new line from being added
+      handleSubmit(e);
+    }
+  };
+
   return (
     <>
-      <form action="" className="promptForm" onSubmit={handleSubmit}>
+      <form action="" className="promptForm">
         <UploadImage setImg={setImg} />
         <textarea
           placeholder="Ask me Anything..."
           name="prompt"
           rows="1"
           value={prompt}
+          onKeyDown={handleKeyPress}
           onChange={(e) => {
             setPrompt(e.target.value);
           }}
         ></textarea>
-        <button>
+        <button onClick={handleSubmit}>
           <img src="/arrow.png" alt="" />
         </button>
       </form>

@@ -3,7 +3,8 @@ import cors from "cors";
 import ImageKit from "imagekit";
 import mongoose from "mongoose";
 import bodyParser from "body-parser";
-import Chat from "./models/chat.js";
+import UserChats from "./models/userChats.js";
+import { ClerkExpressRequireAuth } from "@clerk/clerk-sdk-node";
 
 const dbConnect = async () => {
   try {
@@ -19,7 +20,7 @@ const port = process.env.PORT || 3000;
 const app = express();
 
 app.use(bodyParser.json());
-app.use(cors());
+app.use(cors({ origin: "http://localhost:5173", credentials: true }));
 
 const imagekit = new ImageKit({
   urlEndpoint: process.env.IMAGE_KIT_ENDPOINT,
@@ -32,47 +33,81 @@ app.get("/api/upload", (req, res) => {
   res.send(result);
 });
 
-app.post("/api/chats", async (req, res) => {
+// Add a new chat for a user
+app.post("/api/chats", ClerkExpressRequireAuth(), async (req, res) => {
   try {
-    const chat = req.body;
-    const newChat = new Chat(chat);
-    res.send(await newChat.save());
+    const userId = req.auth.userId;
+    const data = req.body;
+    const userChat = await UserChats.findOne({ userId });
+    if (!userChat) {
+      const newChat = new UserChats({
+        userId,
+        chats: data,
+      });
+
+      res.send(await newChat.save());
+    } else {
+      userChat.chats.push(data);
+      const updatedUserChats = await userChat.save();
+      res.send(updatedUserChats.chats.at(-1));
+    }
+  } catch (error) {
+    console.log(error);
+    res.send({ error });
+  }
+});
+
+app.get("/api/chats", ClerkExpressRequireAuth(), async (req, res) => {
+  try {
+    const userId = req.auth.userId;
+    const userChat = await UserChats.findOne({ userId });
+
+    res.send(userChat.chats);
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+app.get("/api/chats/:id", ClerkExpressRequireAuth(), async (req, res) => {
+  try {
+    const id = req.params.id;
+    const userId = req.auth.userId;
+    const userChat = await UserChats.findOne({ userId });
+    res.send(userChat.chats.find((chat) => chat._id.toString() === id));
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+app.put("/api/chats/:chatId", ClerkExpressRequireAuth(), async (req, res) => {
+  try {
+    const chatId = req.params.chatId;
+    const userId = req.auth.userId;
+    const data = req.body;
+    const userChat = await UserChats.findOne({ userId });
+    userChat.chats
+      .find((chat) => chat._id.toString() === chatId)
+      .messages.push(...data.messages);
+
+    res.send(userChat.save());
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+app.delete("/api/chats", async (req, res) => {
+  try {
+    res.send({
+      message: (await UserChats.deleteMany({})).deletedCount,
+    });
   } catch (error) {
     res.send(error);
   }
 });
 
-app.get("/api/chats", async (req, res) => {
-  try {
-    res.send(await Chat.find());
-  } catch (error) {
-    res.send(error);
-  }
-});
-
-app.get("/api/chats/:id", async (req, res) => {
-  const id = req.params.id;
-
-  try {
-    res.send(await Chat.findById(id));
-  } catch (error) {
-    res.send(error);
-  }
-});
-
-app.put("/api/chats/:chatId", async (req, res) => {
-  const chatId = req.params.chatId;
-  const chat = req.body;
-
-  try {
-    const oldChat = await Chat.findById(chatId);
-    const messages = [...oldChat.messages, ...chat.messages];
-    await Chat.findByIdAndUpdate(chatId, { messages: messages });
-
-    res.send(await Chat.findById(chatId));
-  } catch (error) {
-    res.send(error);
-  }
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(401).send("Unauthenticated!");
 });
 
 app.listen(port, () => {
